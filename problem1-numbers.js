@@ -1,4 +1,4 @@
-const { createMultiNetwork } = require('./network2')
+const { createMultiNetwork } = require('./perceptron')
 const { trainingData, testingData, COLS, ROWS } = require('./data/digits')
 
 const net = createMultiNetwork(
