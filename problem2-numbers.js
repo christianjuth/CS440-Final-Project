@@ -1,44 +1,25 @@
-const NaiveBayes = require("./naive-bayes")
-const bonsole = require('bonsole')
-
+const { createNetwork } = require('./naive-bayes')
 const { trainingData, testingData } = require('./data/digits')
 
-const classifier = new NaiveBayes({
-  tokenizer: arr => { return arr.map(number => String(number)) }
+let net = createNetwork({
+  inputSize: 10 * 10
 })
 
-for (const item of trainingData) {
-  classifier.learn(item.normalizeData, String(item.char));
-}
+net.train(
+  trainingData.map(({ small, char }) => ({
+    input: small,
+    output: char
+  }))
+)
 
-function print(data) {
-  const str = data.map(item => {
-      item = Math.round(item * 2)/2
-      if (item > 0.5) {
-          return '#'
-      } else if (item < 0.5) {
-          return '.'
-      } else {
-          return '+'
-      }
-  }).map((item, index) => ((index % 28 === 0) ? '\n' : '') + item).join('')
-  bonsole(str)
-}
-
-let length = 0
-let errors = 0
+let err = 0
+let len = 0
 for (const item of testingData) {
-  length++
-
-  const result = classifier.categorize(item.normalizeData)
-
-  if (result !== String(item.char)) {
-    errors++
-    print(item.data)
-    print(item.normalizeData)
-    bonsole(item.char)
-  } else {
+  len++
+  const res = net.run(item.small)
+  // console.log(`${res} == ${item.char}`)
+  if (parseInt(res) !== item.char) {
+    err++
   }
 }
-
-console.log(`error rate: ${(errors/length) * 100}%`)
+console.log(`TESTING DATA ACCURACY: ${(1-(err/len))*100}%`)

@@ -4,16 +4,8 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
-    "@thomaschampagne/naive-bayes": "^1.0.0",
-    "@types/big.js": "^6.1.2",
-    "big.js": "^6.1.1",
-    "bigfloat": "^0.1.1",
     "brain.js": "^2.0.0-beta.4",
-    "multimath": "^2.0.0",
-    "perceptron": "^0.0.1",
-    "resize-image-data": "^0.3.1",
-    "resize-img": "^2.0.0",
-    "sharp": "^0.29.3"
+    "resize-image-data": "^0.3.1"
   },
   "devDependencies": {
     "bonsole": "^1.0.3",

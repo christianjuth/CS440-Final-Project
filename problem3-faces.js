@@ -24,12 +24,14 @@ net.train(
 );
 
 
-let errors = 0
+let len = 0
+let err = 0
 for (const item of testingData) {
+  len++
   const isFace = net.run(item.data)[0] >= 0.5 ? 1 : 0
   if (isFace !== item.isFace) {
-    errors++
+    err++
   }
 }
 
-console.log(`error rate: ${(errors/testingData.length) * 100}%`)
+console.log(`TESTING DATA ACCURACY: ${(1-(err/len))*100}%`)

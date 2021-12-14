@@ -25,14 +25,15 @@ net.train(
 );
 
 
-let errors = 0
+let err = 0
+let len = 0
 for (const d of testingData) {
+  len++
   const res = net.run(d.normalizeData)
   const max = Math.max(...res)
   const num = res.findIndex(v => v === max)
   if (num !== d.char) {
-    errors++
+    err++
   }
 }
-
-console.log(`error rate: ${(errors/testingData.length) * 100}%`)
+console.log(`TESTING DATA ACCURACY: ${(1-(err/len))*100}%`)

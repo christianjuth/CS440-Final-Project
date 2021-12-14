@@ -1,5 +1,3 @@
-const Big = require('big.js');
-
 class Table {
   constructor(size) {
     // array of empty objects
@@ -25,11 +23,11 @@ class Table {
   }
 
   run(data) {
-    let num = Big(1)
+    let num = 1
     for (let i = 0; i < this.table.length; i++) {
       const val = data[i]
       const prob = this.table[i][val] ?? 0.01
-      num = num.times(prob)
+      num *= prob
     }
 
     return num
@@ -73,7 +71,7 @@ class NaiveBayes {
       if (max === null) {
         max = result
         output = label
-      } else if(result.gt(max)) {
+      } else if(result > max) {
         max = result
         output = label
       }

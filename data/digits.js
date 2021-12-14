@@ -56,7 +56,8 @@ function loadData(dataFile, labelsFile) {
         char: parseInt(labels[charIndex]),
         visual: charData.join('\n'),
         data,
-        normalizeData: normalizeImage(data, ROWS, COLS)
+        normalizeData: normalizeImage(data, ROWS, COLS),
+        small: normalizeImage(data, ROWS, COLS, 10, 10)
       })
       charData = []
       charIndex++

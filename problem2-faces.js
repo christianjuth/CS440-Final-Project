@@ -21,4 +21,4 @@ for (const item of testingData) {
   }
 }
 
-console.log(`error rate: ${err/len}`)
+console.log(`TESTING DATA ACCURACY: ${(1-(err/len))*100}%`)
