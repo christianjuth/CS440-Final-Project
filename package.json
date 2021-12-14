@@ -1,0 +1,21 @@
+{
+  "name": "CS440-Final-Assignment",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "@thomaschampagne/naive-bayes": "^1.0.0",
+    "brain.js": "^2.0.0-beta.4",
+    "perceptron": "^0.0.1",
+    "resize-image-data": "^0.3.1",
+    "resize-img": "^2.0.0",
+    "sharp": "^0.29.3"
+  },
+  "devDependencies": {
+    "bonsole": "^1.0.3",
+    "nodemon": "^2.0.15"
+  },
+  "scripts": {
+    "dev": "nodemon"
+  }
+}
