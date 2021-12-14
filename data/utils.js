@@ -110,7 +110,7 @@ function normalizeImage(inputData, dataHeight, dataWidth, outputHeight = dataHei
   }
   
   const img = resizeImageData(imgData, outputHeight, outputWidth)
-  const imgSize = dataWidth * dataHeight * 4
+  const imgSize = outputHeight * outputWidth * 4
   
   const newImg = []
   for (let i = 0; i < imgSize; i += 4) {

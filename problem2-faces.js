@@ -1,25 +1,24 @@
-const NaiveBayes = require("./naive-bayes")
-
+const { createNetwork } = require('./naive-bayes')
 const { trainingData, testingData } = require('./data/faces')
 
-const classifier = new NaiveBayes()
+let net = createNetwork({
+  inputSize: 10 * 15
+})
 
-// for (let i = 0; i < 500; i++) {
-  for (const item of trainingData) {
-    classifier.learn(item.normalizeData.join(' '), item.isFace ? 'face' : 'not-face');
-  }
-// }
+net.train(
+  trainingData.map(({ small, isFace }) => ({
+    input: small,
+    output: isFace
+  }))
+)
 
-let length = 0
-let errors = 0
+let err = 0
+let len = 0
 for (const item of testingData) {
-  length++
-
-  const result = classifier.categorize(item.normalizeData.join(' '))
-
-  if (result !== (item.isFace ? 'face' : 'not-face')) {
-    errors++
+  len++
+  if (net.run(item.small) != item.isFace) {
+    err++
   }
 }
 
-console.log(`error rate: ${(errors/length) * 100}%`)
+console.log(`error rate: ${err/len}`)

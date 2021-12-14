@@ -1,243 +1,90 @@
-class NaiveBayes {
+const Big = require('big.js');
 
-  /**
-   * Initializes a NaiveBayes instance from a JSON state representation.
-   * Use this with classifier.toJson().
-   *
-   * @param  {String} modelString   state representation obtained toJson() methods
-   * @return {NaiveBayes}       Classifier
-   */
-  static fromJson(modelString) {
-    try {
-      const parsed = JSON.parse(modelString);
-      const classifier = new NaiveBayes(parsed.options);
+class Table {
+  constructor(size) {
+    // array of empty objects
+    this.table = Array(size).fill(0).map(() => ({}))
+  }
 
-      Object.keys(parsed).forEach(key => {
-        if (parsed[key] === undefined || parsed[key] === null) {
-          throw new Error('NaiveBayes.fromJson: JSON string is missing an expected property: `' + key + '`.');
-        }
-        (classifier)[key] = parsed[key];
-
-      });
-      return classifier;
-
-    } catch (e) {
-      throw new Error('NaiveBayes.fromJson expects a valid JSON string.');
+  train(data) {
+    for (let i = 0; i < data.length; i++) {
+      const tableItem = this.table[i]
+      const value = data[i]
+      tableItem[value] = tableItem[value] ?? 0
+      tableItem[value] += 1
     }
   }
 
-
-  // public tokenizer: (text: string) => string[];
-  // public vocabulary: { [key: string]: boolean };
-  // public vocabularySize: number;
-  // public totalDocuments: number;
-  // public docCount: { [key: string]: number };
-  // public wordCount: { [key: string]: number };
-  // public wordFrequencyCount: { [key: string]: { [key: string]: number } };
-  // public categories: { [key: string]: boolean };
-
-
-  /**
-   * Naive-Bayes Classifier
-   *
-   * This is a naive-bayes classifier that uses Laplace Smoothing.
-   *
-   * Takes an (optional) options object containing:
-   *   - `tokenizer`  => custom tokenization function
-   *
-   */
-  constructor(options = {}) {
-    this.options = options
-
-    // set options object
-    if (this.options) {
-      if (!this.options || typeof this.options !== 'object' || Array.isArray(this.options)) {
-        throw TypeError('NaiveBayes got invalid `options`: `' + this.options + '`. Pass in an object.');
+  convertToProbabilities() {
+    for (let i = 0; i < this.table.length; i++) {
+      const total = Object.values(this.table[i]).reduce((acc,val) => acc + val, 0)
+      for (let key in this.table[i]) {
+        this.table[i][key] = Math.max(this.table[i][key]/total, 0.01)
       }
     }
-
-    this.tokenizer = this.options.tokenizer || this.defaultTokenizer;
-
-    // Initialize our vocabulary and its size
-    this.vocabulary = {};
-    this.vocabularySize = 0;
-
-    // Number of documents we have learned from
-    this.totalDocuments = 0;
-
-    // Document frequency table for each of our categories
-    // => for each category, how often were documents mapped to it
-    this.docCount = {};
-
-    // For each category, how many words total were mapped to it
-    this.wordCount = {};
-
-    // Word frequency table for each category
-    // => for each category, how frequent was a given word mapped to it
-    this.wordFrequencyCount = {};
-
-    // Hashmap of our category names
-    this.categories = {};
   }
 
-  defaultTokenizer(text) {
-    // Remove punctuation from text - remove anything that isn't a word char or a space
-    return text.replace(/[^(a-zA-ZA-Яa-я0-9_)+\s]/g, ' ').split(/\s+/);
-  }
-
-  /**
-   * Initialize each of our data structure entries for this new category
-   *
-   * @param  {String} categoryName
-   */
-  initializeCategory(categoryName) {
-    if (!this.categories[categoryName]) {
-      this.docCount[categoryName] = 0;
-      this.wordCount[categoryName] = 0;
-      this.wordFrequencyCount[categoryName] = {};
-      this.categories[categoryName] = true;
+  run(data) {
+    let num = Big(1)
+    for (let i = 0; i < this.table.length; i++) {
+      const val = data[i]
+      const prob = this.table[i][val] ?? 0.01
+      num = num.times(prob)
     }
+
+    return num
   }
-
-  /**
-   * train our naive-bayes classifier by telling it what `category`
-   * the `text` corresponds to.
-   *
-   * @param text
-   * @param category
-   */
-  learn(text, category) {
-
-    // Initialize category data structures if we've never seen this category
-    this.initializeCategory(category);
-
-    // Update our count of how many documents mapped to this category
-    this.docCount[category]++;
-
-    // Update the total number of documents we have learned from
-    this.totalDocuments++;
-
-    // Normalize the text into a word array
-    const tokens = this.tokenizer(text);
-
-    // Get a frequency count for each token in the text
-    const frequencyTable = this.frequencyTable(tokens);
-
-    // Update our vocabulary and our word frequency count for this category
-    Object.keys(frequencyTable).forEach((token) => {
-
-      // Add this word to our vocabulary if not already existing
-      if (!this.vocabulary[token]) {
-        this.vocabulary[token] = true;
-        this.vocabularySize++;
-      }
-
-      const frequencyInText = frequencyTable[token];
-
-      // Update the frequency information for this word in this category
-      if (!this.wordFrequencyCount[category][token])
-        this.wordFrequencyCount[category][token] = frequencyInText;
-      else
-        this.wordFrequencyCount[category][token] += frequencyInText;
-
-      // Update the count of all words we have seen mapped to this category
-      this.wordCount[category] += frequencyInText;
-    });
-  }
-
-
-  /**
-   * Determine what category `text` belongs to.
-   *
-   * @param  {String} text
-   * @return {Promise<string>} category
-   */
-  categorize(text) {
-    let maxProbability = -Infinity;
-    let chosenCategory = null;
-
-    const tokens = this.tokenizer(text);
-    const frequencyTable = this.frequencyTable(tokens);
-
-    // Iterate thru our categories to find the one with max probability for this text
-    Object.keys(this.categories).forEach(category => {
-      // Start by calculating the overall probability of this category
-      // =>  out of all documents we've ever looked at, how many were
-      //    mapped to this category
-      const categoryProbability = this.docCount[category] / this.totalDocuments;
-
-      // Take the log to avoid underflow
-      let logProbability = Math.log(categoryProbability);
-
-      // Now determine P( w | c ) for each word `w` in the text
-      Object
-        .keys(frequencyTable)
-        .forEach(token => {
-          const frequencyInText = frequencyTable[token];
-          const tokenProbability = this.tokenProbability(token, category);
-
-          // console.log('token: %s category: `%s` tokenProbability: %d', token, category, tokenProbability)
-          // Determine the log of the P( w | c ) for this word
-          logProbability += frequencyInText * Math.log(tokenProbability);
-        });
-
-      if (logProbability > maxProbability) {
-        maxProbability = logProbability;
-        chosenCategory = category;
-      }
-    });
-
-    return chosenCategory;
-  }
-
-  /**
-   * Build a frequency hashmap where
-   * - the keys are the entries in `tokens`
-   * - the values are the frequency of each entry in `tokens`
-   *
-   * @param  {Array} tokens  Normalized word array
-   * @return {Object}
-   */
-  frequencyTable(tokens) {
-    const frequencyTable = Object.create(null);
-
-    tokens.forEach((token) => {
-      if (!frequencyTable[token]) {
-        frequencyTable[token] = 1;
-      } else {
-        frequencyTable[token]++;
-      }
-    });
-
-    return frequencyTable;
-  }
-
-  /**
-   * Calculate probability that a `token` belongs to a `category`
-   *
-   * @param  {String} token
-   * @param  {String} category
-   * @return {Number} probability
-   */
-  tokenProbability(token, category) {
-    // How many times this word has occurred in documents mapped to this category
-    const wordFrequencyCount = this.wordFrequencyCount[category][token] || 0;
-
-    // What is the count of all words that have ever been mapped to this category
-    const wordCount = this.wordCount[category];
-
-    // Use laplace Add-1 Smoothing equation
-    return (wordFrequencyCount + 1) / (wordCount + this.vocabularySize);
-  }
-
-  /**
-   * Dump the classifier's state as a JSON string.
-   * @return {String} Representation of the classifier.
-   */
-  toJson() {
-    return JSON.stringify(this);
-  }
-
 }
 
-module.exports = NaiveBayes
+class NaiveBayes {
+
+  constructor(options) {
+    this.options = {
+      ...options
+    }
+
+    this.tables = {}
+  }
+
+  trainOnce(data, label) {
+    this.tables[label] = this.tables[label] ?? new Table(this.options.inputSize)
+    this.tables[label].train(data)
+  }
+
+  train(allData) {
+    if (this.isLocked) {
+      throw Error('network has already been trained')
+    }
+    for (const { input, output } of allData) {
+      this.trainOnce(input, output)
+    }
+    for (const label in this.tables) {
+      this.tables[label].convertToProbabilities()
+    }
+    this.isLocked = true
+  }
+
+  run(data) {
+    let output = null
+
+    let max = null
+    for (const label in this.tables) {
+      const result = this.tables[label].run(data)
+      if (max === null) {
+        max = result
+        output = label
+      } else if(result.gt(max)) {
+        max = result
+        output = label
+      }
+    }
+
+    return output
+  }
+}
+
+function createNetwork(...args) {
+  return new NaiveBayes(...args)
+}
+
+exports.createNetwork = createNetwork

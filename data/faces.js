@@ -28,7 +28,6 @@ function loadData(dataFile, labelsFile) {
   const data = fs.readFileSync(dataFile, 'utf8').split('\n')
   const labels = fs.readFileSync(labelsFile, 'utf8').split('\n')
 
-  const blankLineRegEx = /^(\s|\t)*$/
   let charIndex = 0
   let charData = []
 
@@ -49,7 +48,8 @@ function loadData(dataFile, labelsFile) {
         isFace: parseInt(labels[charIndex]),
         visual: charData.join('\n'),
         data,
-        normalizeData: normalizeImage(data, ROWS, COLS)
+        normalizeData: normalizeImage(data, ROWS, COLS),
+        small: normalizeImage(data, ROWS, COLS, 10, 15)
       })
       charData = []
       charIndex++
