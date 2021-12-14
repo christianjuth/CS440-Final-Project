@@ -86,12 +86,6 @@ function createMultiNetwork(options, outputSize) {
   }
 
   function run(input) {
-    // for (let i = 0; i < outputSize; i++) {
-      // if (networks[i].run(input) === 1) {
-      //   return i
-      // }
-    // }
-
     let results = networks.map(net => net.run(input, false))
 
     let max = -Infinity
