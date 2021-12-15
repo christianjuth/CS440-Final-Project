@@ -20,7 +20,7 @@ const net = new brain.NeuralNetwork(config);
 net.train(
   trainingData.map(digit => ({
     input: digit.normalizeData,
-    output: Array(9).fill(0).map((_, i) => i === digit.char ? 1 : 0)
+    output: Array(10).fill(0).map((_, i) => i === digit.char ? 1 : 0)
   }))
 );
 

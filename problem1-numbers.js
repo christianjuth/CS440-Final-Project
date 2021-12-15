@@ -7,7 +7,7 @@ const net = createMultiNetwork(
     errorThresh: 0.025,
     learningRate: 0.3
   },
-  9
+  10
 )
 
 net.train(
